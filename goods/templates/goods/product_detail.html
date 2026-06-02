@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<section class="detail-grid">
+    <div class="detail-image">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        {% else %}
+            <div class="image-placeholder"><i class="bi bi-image"></i></div>
+        {% endif %}
+    </div>
+    <div class="content-card">
+        <span class="eyebrow text-success">{{ product.category.name }}</span>
+        <h1 class="fw-black">{{ product.name }}</h1>
+        <p class="text-muted mt-3">{{ product.description }}</p>
+        <div class="d-flex flex-wrap gap-3 align-items-center my-4">
+            <span class="price-lg">{{ product.price }} ₽</span>
+            <span class="badge text-bg-light border">{{ product.stock }} шт. в наличии</span>
+            <span class="badge text-bg-warning">{{ avg_rating|floatformat:1 }} из 5</span>
+        </div>
+        {% if product.stock > 0 %}
+            <a href="{% url 'cart:cart_add' product.id %}" class="btn btn-accent btn-lg"><i class="bi bi-bag-plus"></i> Добавить в корзину</a>
+        {% else %}
+            <button class="btn btn-secondary btn-lg" disabled>Нет в наличии</button>
+        {% endif %}
+        <a href="{% url 'goods:catalog' %}" class="btn btn-outline-dark btn-lg ms-2">Назад в каталог</a>
+    </div>
+</section>
+
+<section class="mt-4">
+    <div class="catalog-toolbar">
+        <div>
+            <h2>Отзывы</h2>
+            <p>{{ total_reviews }} отзывов, средняя оценка {{ avg_rating|floatformat:1 }} из 5</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            {% if user.is_authenticated %}
+                <div class="content-card">
+                    <h3 class="h5 mb-3">Оставить отзыв</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-accent">Отправить отзыв</button>
+                    </form>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Чтобы оставить отзыв, <a href="{% url 'users:login' %}">войдите</a> в аккаунт.
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-7">
+            <div class="d-grid gap-3">
+                {% for review in reviews %}
+                    <div class="review-item">
+                        <div class="d-flex justify-content-between gap-3">
+                            <strong>{{ review.user.username }}</strong>
+                            <span class="badge text-bg-warning">{{ review.rating }} из 5</span>
+                        </div>
+                        <p class="mt-2 mb-2">{{ review.comment }}</p>
+                        <small class="text-muted">{{ review.created_at|date:"d.m.Y H:i" }}</small>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <i class="bi bi-chat-square-heart"></i>
+                        <h3>Пока нет отзывов</h3>
+                        <p>Будьте первым, кто оценит этот товар.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

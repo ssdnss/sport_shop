@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+<div class="catalog-toolbar">
+    <div>
+        <h1>Оформление заказа</h1>
+        <p>Укажите контактные данные и адрес доставки.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="content-card">
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-accent btn-lg">Подтвердить заказ</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="content-card">
+            <h4>Ваш заказ</h4>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr><th>Товар</th><th>Кол-во</th><th>Сумма</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart.items.all %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.get_total_price }} ₽</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="table-active">
+                            <td colspan="2"><strong>Итого</strong></td>
+                            <td><strong>{{ cart.get_total_price }} ₽</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<div class="catalog-toolbar">
+    <div>
+        <h1>Личный кабинет</h1>
+        <p>Добро пожаловать, {{ user.username }}.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="content-card">
+            <h4>Профиль</h4>
+            <p><strong>Имя пользователя:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Дата регистрации:</strong> {{ user.date_joined|date:"d.m.Y" }}</p>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="content-card">
+            <h4>История заказов</h4>
+            {% if orders %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>№ заказа</th>
+                                <th>Дата</th>
+                                <th>Сумма</th>
+                                <th>Статус</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>{{ order.id }}</td>
+                                <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                                <td>{{ order.total_price }} ₽</td>
+                                <td>
+                                    <span class="badge
+                                        {% if order.status == 'pending' %}text-bg-warning
+                                        {% elif order.status == 'paid' %}text-bg-info
+                                        {% elif order.status == 'shipped' %}text-bg-primary
+                                        {% elif order.status == 'delivered' or order.status == 'received' %}text-bg-success
+                                        {% else %}text-bg-danger{% endif %}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-sm btn-outline-dark">Подробнее</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-receipt"></i>
+                    <h3>Заказов пока нет</h3>
+                    <p>После покупки заказы появятся здесь.</p>
+                    <a href="{% url 'goods:catalog' %}" class="btn btn-accent">Перейти в каталог</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

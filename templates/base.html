@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Атлетика{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="shop-body">
+    <nav class="navbar navbar-expand-lg navbar-dark shop-navbar sticky-top">
+        <div class="container">
+            <a class="navbar-brand shop-brand" href="{% url 'goods:catalog' %}">
+                <span class="brand-mark"><i class="bi bi-lightning-charge-fill"></i></span>
+                Атлетика
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'goods:catalog' %}"><i class="bi bi-grid"></i> Каталог</a>
+                    </li>
+                    {% if user.is_authenticated and user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'orders:admin_dashboard' %}"><i class="bi bi-bar-chart"></i> Панель</a>
+                        </li>
+                    {% endif %}
+                </ul>
+                <form class="shop-search" role="search" method="get" action="{% url 'goods:catalog' %}">
+                    <i class="bi bi-search"></i>
+                    <input class="form-control" type="search" name="q" placeholder="Поиск товаров..." value="{{ query|default:'' }}" aria-label="Поиск">
+                    <button class="btn btn-accent" type="submit">Найти</button>
+                </form>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link cart-link" href="{% url 'cart:cart_detail' %}">
+                            <i class="bi bi-bag"></i> Корзина
+                            <span class="badge rounded-pill cart-count {% if cart_total_items == 0 %}d-none{% endif %}">{{ cart_total_items }}</span>
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:profile' %}"><i class="bi bi-person-circle"></i> {{ user.username }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:logout' %}">Выйти</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:login' %}">Вход</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:register' %}">Регистрация</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container page-shell">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="shop-footer">
+        <div class="container">
+            <span>Атлетика</span>
+            <span>Спортивные товары со всего мира!</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('click', async (event) => {
+            const button = event.target.closest('.js-add-to-cart');
+            if (!button) return;
+
+            event.preventDefault();
+            const iconHtml = button.innerHTML;
+            button.classList.add('disabled');
+            button.innerHTML = '<i class="bi bi-check-lg"></i>';
+
+            try {
+                const response = await fetch(button.href, {
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                });
+                const data = await response.json();
+                const counter = document.querySelector('.cart-count');
+
+                if (counter && data.cart_total_items !== undefined) {
+                    counter.textContent = data.cart_total_items;
+                    counter.classList.toggle('d-none', data.cart_total_items < 1);
+                }
+
+                if (!response.ok || !data.success) {
+                    button.innerHTML = '<i class="bi bi-exclamation-lg"></i>';
+                    button.classList.add('btn-warning');
+                }
+            } catch (error) {
+                button.innerHTML = '<i class="bi bi-exclamation-lg"></i>';
+                button.classList.add('btn-warning');
+            } finally {
+                window.setTimeout(() => {
+                    button.classList.remove('disabled', 'btn-warning');
+                    button.innerHTML = iconHtml;
+                }, 900);
+            }
+        });
+    </script>
+</body>
+</html>

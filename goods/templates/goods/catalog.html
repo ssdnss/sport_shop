@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Каталог спортивных товаров{% endblock %}
+
+{% block content %}
+<section class="catalog-hero">
+    <div class="hero-copy">
+        <span class="eyebrow">Экипировка для тренировок и активного отдыха</span>
+        <h1>Спортивные товары для сильного старта</h1>
+        <p>Выбирайте инвентарь, одежду и аксессуары, сравнивайте цены, добавляйте товары в корзину и оформляйте заказ через личный кабинет.</p>
+        <div class="hero-actions">
+            <a href="#catalog" class="btn btn-accent btn-lg"><i class="bi bi-arrow-down-circle"></i> Смотреть каталог</a>
+            <a href="{% url 'cart:cart_detail' %}" class="btn btn-light btn-lg"><i class="bi bi-bag-check"></i> Корзина</a>
+        </div>
+    </div>
+    <div class="hero-panel">
+        <div class="stat-card">
+            <strong>{{ products.paginator.count }}</strong>
+            <span>товаров найдено</span>
+        </div>
+    </div>
+</section>
+
+<section id="catalog" class="catalog-layout">
+    <aside class="filter-panel">
+        <form method="get" action="{% url 'goods:catalog' %}" class="filter-form">
+            {% if query %}
+                <input type="hidden" name="q" value="{{ query }}">
+            {% endif %}
+            {% if sort_by %}
+                <input type="hidden" name="sort" value="{{ sort_by }}">
+            {% endif %}
+
+            <div class="filter-head">
+                <span>Фильтры</span>
+                <a href="{% url 'goods:catalog' %}" class="filter-reset">Сбросить</a>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-title">Категории</div>
+                <div class="filter-options">
+                    {% for cat in categories %}
+                        <label class="filter-check">
+                            <input type="checkbox" name="category" value="{{ cat.slug }}" {% if cat.slug in selected_categories %}checked{% endif %}>
+                            <span class="check-box"></span>
+                            <span>{{ cat.name }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-title">Цена, ₽</div>
+                <div class="price-range">
+                    <input type="number" name="min_price" value="{{ min_price }}" min="0" step="1" class="form-control" placeholder="От">
+                    <input type="number" name="max_price" value="{{ max_price }}" min="0" step="1" class="form-control" placeholder="До">
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-check">
+                    <input type="checkbox" name="in_stock" value="1" {% if in_stock %}checked{% endif %}>
+                    <span class="check-box"></span>
+                    <span>Только товары в наличии</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-accent w-100">Применить</button>
+        </form>
+    </aside>
+
+    <div class="catalog-content">
+        <div class="catalog-toolbar">
+            <div>
+                <h2>Каталог</h2>
+                {% if query %}
+                    <p>Результаты поиска по запросу: <strong>{{ query }}</strong></p>
+                {% else %}
+                    <p>Подберите товар по категории, цене или наличию.</p>
+                {% endif %}
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-outline-dark dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    {% if sort_by == 'name_asc' %}По имени
+                    {% elif sort_by == 'name_desc' %}Имя в обратном порядке
+                    {% elif sort_by == 'price_asc' %}Сначала дешевле
+                    {% elif sort_by == 'price_desc' %}Сначала дороже
+                    {% elif sort_by == 'newest' %}Сначала новинки
+                    {% else %}Сортировка{% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+                    <li><a class="dropdown-item" href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort=name_asc">По имени</a></li>
+                    <li><a class="dropdown-item" href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort=name_desc">Имя в обратном порядке</a></li>
+                    <li><a class="dropdown-item" href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort=price_asc">Сначала дешевле</a></li>
+                    <li><a class="dropdown-item" href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort=price_desc">Сначала дороже</a></li>
+                    <li><a class="dropdown-item" href="?{% if sort_query %}{{ sort_query }}&{% endif %}sort=newest">Сначала новинки</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="product-grid">
+            {% for product in products %}
+                <article class="product-card">
+                    <a class="product-image" href="{% url 'goods:product_detail' product.slug %}">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        {% else %}
+                            <div class="image-placeholder"><i class="bi bi-image"></i></div>
+                        {% endif %}
+                    </a>
+                    <div class="product-body">
+                        <div class="product-meta">
+                            <span>{{ product.category.name }}</span>
+                            <span>{{ product.stock }} шт.</span>
+                        </div>
+                        <h3>{{ product.name }}</h3>
+                        <p>{{ product.description|truncatewords:16 }}</p>
+                        <div class="product-footer">
+                            <strong>{{ product.price }} ₽</strong>
+                            <div class="product-actions">
+                                <a href="{% url 'goods:product_detail' product.slug %}" class="btn btn-outline-dark btn-sm">Подробнее</a>
+                                <a href="{% url 'cart:cart_add' product.id %}" class="btn btn-accent btn-sm js-add-to-cart" aria-label="Добавить в корзину"><i class="bi bi-bag-plus"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="empty-state">
+                    <i class="bi bi-search"></i>
+                    <h3>Товары не найдены</h3>
+                    <p>Попробуйте изменить фильтры или поисковый запрос.</p>
+                    <a href="{% url 'goods:catalog' %}" class="btn btn-accent">Сбросить фильтры</a>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if products.has_other_pages %}
+            <nav aria-label="Навигация по страницам" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if products.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ products.previous_page_number }}{% if page_query %}&{{ page_query }}{% endif %}">Назад</a>
+                        </li>
+                    {% endif %}
+                    {% for num in products.paginator.page_range %}
+                        {% if products.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                        {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if page_query %}&{{ page_query }}{% endif %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if products.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ products.next_page_number }}{% if page_query %}&{{ page_query }}{% endif %}">Вперед</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

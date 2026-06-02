@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Административная панель{% endblock %}
+
+{% block content %}
+<div class="catalog-toolbar">
+    <div>
+        <h1>Административная панель</h1>
+        <p>Статистика заказов, выручки и популярных товаров.</p>
+    </div>
+    <a href="/admin/" class="btn btn-outline-dark"><i class="bi bi-gear"></i> Django Admin</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="dashboard-card"><span class="text-muted">Всего заказов</span><h2>{{ total_orders }}</h2></div></div>
+    <div class="col-md-3"><div class="dashboard-card"><span class="text-muted">Выручка</span><h2>{{ total_revenue|floatformat:0 }} ₽</h2></div></div>
+    <div class="col-md-3"><div class="dashboard-card"><span class="text-muted">Покупателей</span><h2>{{ total_customers }}</h2></div></div>
+    <div class="col-md-3"><div class="dashboard-card"><span class="text-muted">Средний чек</span><h2>{{ avg_order_value|floatformat:0 }} ₽</h2></div></div>
+</div>
+
+<div class="content-card mb-4">
+    <h4>Статусы заказов</h4>
+    <div class="row g-3 mt-1">
+        <div class="col-md"><div class="p-3 border rounded-2 text-center"><span>В обработке</span><h3 class="text-warning">{{ pending_orders }}</h3></div></div>
+        <div class="col-md"><div class="p-3 border rounded-2 text-center"><span>Оплачены</span><h3 class="text-info">{{ paid_orders }}</h3></div></div>
+        <div class="col-md"><div class="p-3 border rounded-2 text-center"><span>Отправлены</span><h3 class="text-primary">{{ shipped_orders }}</h3></div></div>
+        <div class="col-md"><div class="p-3 border rounded-2 text-center"><span>Доставлены</span><h3 class="text-success">{{ delivered_orders }}</h3></div></div>
+        <div class="col-md"><div class="p-3 border rounded-2 text-center"><span>Получены</span><h3 style="color: purple;">{{ received_orders }}</h3></div></div>
+        <div class="col-md"><div class="p-3 border rounded-2 text-center"><span>Отменены</span><h3 class="text-danger">{{ cancelled_orders }}</h3></div></div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="content-card">
+            <h4>За последние 7 дней</h4>
+            <p><strong>Заказов:</strong> {{ weekly_orders }}</p>
+            <p><strong>Выручка:</strong> {{ weekly_revenue|floatformat:0 }} ₽</p>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="content-card">
+            <h4>За последние 30 дней</h4>
+            <p><strong>Заказов:</strong> {{ monthly_orders }}</p>
+            <p><strong>Выручка:</strong> {{ monthly_revenue|floatformat:0 }} ₽</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="content-card">
+            <h4>Топ-5 популярных товаров</h4>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Товар</th><th>Продано</th><th>Выручка</th></tr></thead>
+                    <tbody>
+                        {% for product in top_products %}
+                        <tr>
+                            <td>{{ product.product__name }}</td>
+                            <td>{{ product.total_quantity }} шт.</td>
+                            <td>{{ product.total_sales|floatformat:0 }} ₽</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3">Нет данных</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="content-card">
+            <h4>Последние 10 заказов</h4>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>№</th><th>Дата</th><th>Сумма</th><th>Статус</th></tr></thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>{{ order.id }}</td>
+                            <td>{{ order.created_at|date:"d.m.Y" }}</td>
+                            <td>{{ order.total_price }} ₽</td>
+                            <td>{{ order.get_status_display }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4">Нет данных</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
